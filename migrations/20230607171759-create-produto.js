@@ -15,6 +15,9 @@ module.exports = {
       descricao: {
         type: Sequelize.STRING
       },
+      status: {
+        type: Sequelize.STRING
+      },
       img: {
         type: Sequelize.STRING
       },

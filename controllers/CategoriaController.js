@@ -1,4 +1,4 @@
-const { Categoria } = require('../models')
+const { Categoria,Produto } = require('../models')
 
 
 class CategoriaController {
@@ -6,7 +6,9 @@ class CategoriaController {
     static async getCategoria(req, res) {
 
         try {
-            const categorias = await Categoria.findAll()
+            const categorias = await Categoria.findAll({
+                include:[Produto]
+            })
             res.status(200).json({
                 data: categorias
             })
