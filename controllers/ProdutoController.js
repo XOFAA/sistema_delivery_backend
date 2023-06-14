@@ -34,7 +34,7 @@ class ProdutoController{
                     fs.unlinkSync(req.file.path);
                 }
                 res.status(501).json({
-                    message:'Não foi possivel cadastrar esse produto, ele já existe'
+                    message:'Não foi possivel cadastrar esse produtos, ele já existe'
                 })
             }else{
                 await Produto.create({
@@ -46,7 +46,7 @@ class ProdutoController{
                     valor:parseFloat(req.body.valor)
                 })
                 res.status(200).json({
-                    message:'produto cadastrado com sucesso'
+                    message:'produtos cadastrado com sucesso'
                 })
             }
         } catch (error) {
@@ -64,55 +64,64 @@ class ProdutoController{
     static async updateProduto(req, res) {
 
       try {
-        const produtos = await Produto.findByPk(req.params.id)
-        const nomeExiste=await Produto.findOne({
-          where:{
-            titulo:req.body.titulo
+        const produtos = await Produto.findByPk(req.params.id);
+      
+        if (produtos) {
+          if (req.body.titulo !== produtos.titulo) {
+            const produtoExistente = await Produto.findOne({
+              where: {
+                titulo: req.body.titulo
+              }
+            });
+      
+            if (produtoExistente && produtoExistente.id !== req.params.id) {
+              if (req.file) {
+                fs.unlinkSync(req.file.path);
+              }
+              return res.status(400).json({
+                error: true,
+                message: 'O nome do produtos já está em uso.'
+              });
+            }
           }
-        })
-
-        if(produtos){
-         
-          if(produtos.img){
-            fs.unlinkSync('public/images/'+produtos.img)
+      
+          if (req.file) {
+            fs.unlinkSync('public/images/' + produtos.img);
           }
-          if(nomeExiste){
-            
-            res.status(501).json({
-              message:'não é possivel atualizar esse produto com esse nome, pois o nome já existe'
-            })
-          }else{
-            await produtos.update({
-              titulo:req.body.titulo,
-              descricao:req.body.descricao,
-              valor:req.body.valor,
-              status:req.body.status,
-              img:req.file?req.file.filename:null
-            })
+      
+          await produtos.update({
+            titulo: req.body.titulo || produtos.titulo,
+            descricao: req.body.descricao || produtos.descricao,
+            valor: req.body.valor || produtos.valor,
+            status: req.body.status || produtos.status,
+            img: req.file ? req.file.filename : produtos.img
+          });
+      
+          return res.status(200).json({
+            message: 'Produto atualizado com sucesso.'
+          });
+        } else {
+          if (req.file) {
+            fs.unlinkSync(req.file.path);
           }
-          res.status(200).json({
-            message:'produto atualizado com sucesso'
-          })
-        }else{
-          res.status(500).json({
-            message:'erro ao atualizar o produto'
-          })
+      
+          return res.status(404).json({
+            error: true,
+            message: 'Produto não encontrado.'
+          });
         }
-
       } catch (error) {
-        if(req.file){
-          fs.unlinkSync(req.file.path)
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
         }
-        res.status(400).json({
-          error:true,
-          message:error.message
-        })
+      
+        return res.status(500).json({
+          error: true,
+          message: error.message
+        });
       }
-       
-    }
+    }      
     
-      
-      
 }
 
 module.exports = ProdutoController
