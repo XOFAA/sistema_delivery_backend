@@ -85,41 +85,55 @@ class ProdutoController{
     
 
     static async updateProduto(req, res) {
-
       try {
-        const produtos = await Produto.findByPk(req.params.id);
-      
-        if (produtos) {
-          if (req.body.titulo !== produtos.titulo) {
+        const produto = await Produto.findByPk(req.params.id);
+    
+        if (produto) {
+          if (req.body.titulo !== produto.titulo) {
             const produtoExistente = await Produto.findOne({
               where: {
                 titulo: req.body.titulo
               }
             });
-      
+    
             if (produtoExistente && produtoExistente.id !== req.params.id) {
               if (req.file) {
                 fs.unlinkSync(req.file.path);
               }
               return res.status(400).json({
                 error: true,
-                message: 'O nome do produtos já está em uso.'
+                message: 'O nome do produto já está em uso.'
               });
             }
           }
-      
+    
           if (req.file) {
-            fs.unlinkSync('public/images/' + produtos.img);
+            fs.unlinkSync('public/images/' + produto.img);
           }
-      
-          await produtos.update({
-            titulo: req.body.titulo || produtos.titulo,
-            descricao: req.body.descricao || produtos.descricao,
-            valor: req.body.valor || produtos.valor,
-            status: req.body.status || produtos.status,
-            img: req.file ? req.file.filename : produtos.img
+    
+          await produto.update({
+            titulo: req.body.titulo || produto.titulo,
+            descricao: req.body.descricao || produto.descricao,
+            valor: req.body.valor || produto.valor,
+            status: req.body.status || produto.status,
+            img: req.file ? req.file.filename : produto.img
           });
-      
+    
+          // Excluir todos os itens adicionais associados ao produto
+          await produto.setItensAdicionais([]);
+    
+          // Verificar se foram enviados novos itens adicionais na requisição
+          if (req.body.itensAdicionais && req.body.itensAdicionais.length > 0) {
+            const novosItensAdicionais = await ItemAdicional.findAll({
+              where: {
+                id: req.body.itensAdicionais
+              }
+            });
+    
+            // Criar as associações entre o produto e os novos itens adicionais
+            await produto.addItensAdicionais(novosItensAdicionais);
+          }
+    
           return res.status(200).json({
             message: 'Produto atualizado com sucesso.'
           });
@@ -127,7 +141,7 @@ class ProdutoController{
           if (req.file) {
             fs.unlinkSync(req.file.path);
           }
-      
+    
           return res.status(404).json({
             error: true,
             message: 'Produto não encontrado.'
@@ -137,13 +151,14 @@ class ProdutoController{
         if (req.file) {
           fs.unlinkSync(req.file.path);
         }
-      
+    
         return res.status(500).json({
           error: true,
           message: error.message
         });
       }
     }
+    
 
     static async deleteProduto(req,res){
       try {
