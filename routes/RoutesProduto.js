@@ -8,5 +8,5 @@ const RoutesProduto = express.Router()
 RoutesProduto.get('/produtos/',ProdutoController.getProduto)
 RoutesProduto.post('/produto/create',upload.single('img'),ProdutoController.createProduto)
 RoutesProduto.put('/produto/update/:id',upload.single('img'),ProdutoController.updateProduto)
-
+RoutesProduto.delete('/produto/delete/:id',ProdutoController.deleteProduto)
 module.exports=RoutesProduto

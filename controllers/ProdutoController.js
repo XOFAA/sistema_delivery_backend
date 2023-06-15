@@ -1,6 +1,7 @@
-const {Produto}=require('../models')
+const {Produto,ItemAdicional,ProdutoItemAdicional}=require('../models')
 const fs = require('fs');
-const path=require('path')
+const path=require('path');
+
 
 
 class ProdutoController{
@@ -8,7 +9,15 @@ class ProdutoController{
     static async getProduto(req,res){
 
         try {
-            const produtos = await Produto.findAll()
+            const produtos = await Produto.findAll({
+              include: [
+                {
+                  model: ItemAdicional,
+                  as: 'itensAdicionais',
+                },
+              ],
+              
+            })
             res.status(200).json({
                 data:produtos
             })
@@ -21,45 +30,59 @@ class ProdutoController{
         }
     }
 
-    static async createProduto(req,res){
-        try {
-            const produtos=await Produto.findOne({
-                where:{
-                    titulo:req.body.titulo
-                    
-                }
-            }) 
-            if(produtos){
-                if (req.file) {
-                    fs.unlinkSync(req.file.path);
-                }
-                res.status(501).json({
-                    message:'Não foi possivel cadastrar esse produtos, ele já existe'
-                })
-            }else{
-                await Produto.create({
-                    titulo:req.body.titulo,
-                    descricao:req.body.descricao,
-                    categoriaId:req.body.categoriaId,
-                    status:'ativo',
-                    img:req.file ? req.file.filename : null,
-                    valor:parseFloat(req.body.valor)
-                })
-                res.status(200).json({
-                    message:'produtos cadastrado com sucesso'
-                })
-            }
-        } catch (error) {
-            
-            if (req.file) {
-                fs.unlinkSync(req.file.path);
-            }
-            res.status(400).json({
-                error:true,
-                message:error.message
-            })
+    static async createProduto(req, res) {
+      try {
+        const { titulo, descricao, categoriaId, valor, itemadicional } = req.body;
+    
+        const produtoExistente = await Produto.findOne({
+          where: {
+            titulo: titulo,
+          },
+        });
+    
+        if (produtoExistente) {
+          if (req.file) {
+            fs.unlinkSync(req.file.path);
+          }
+          return res.status(501).json({
+            message: 'Não foi possível cadastrar esse produto, ele já existe',
+          });
         }
+    
+        const novoProduto = await Produto.create({
+          titulo: titulo,
+          descricao: descricao,
+          categoriaId: categoriaId,
+          status: 'ativo',
+          img: req.file ? req.file.filename : null,
+          valor: parseFloat(valor),
+        });
+    
+        // Associar os itens adicionais ao produto
+        if (itemadicional && Array.isArray(itemadicional)) {
+          const itensAdicionais = await ItemAdicional.findAll({
+            where: {
+              id: itemadicional,
+            },
+          });
+    
+          await novoProduto.setItensAdicionais(itensAdicionais);
+        }
+    
+        res.status(200).json({
+          message: 'Produto cadastrado com sucesso',
+        });
+      } catch (error) {
+        if (req.file) {
+          fs.unlinkSync(req.file.path);
+        }
+        res.status(400).json({
+          error: true,
+          message: error.message,
+        });
+      }
     }
+    
 
     static async updateProduto(req, res) {
 
@@ -120,7 +143,33 @@ class ProdutoController{
           message: error.message
         });
       }
-    }      
+    }
+
+    static async deleteProduto(req,res){
+      try {
+        const produtos = await Produto.findByPk(req.params.id)
+        if(produtos){
+          await ProdutoItemAdicional.destroy({
+            where: {
+              produtoId: produtos.id,
+            },
+          });
+          produtos.destroy()
+          res.status(200).json({
+            message:'produto deletado com sucesso'
+          })
+        }else{
+          res.status(500).json({
+            message:'produto não encontrado'
+          })
+        }
+      } catch (error) {
+        res.status(400).json({
+          error:true,
+          message:error.message
+        })
+      }
+    }
     
 }
 
