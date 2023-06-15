@@ -119,20 +119,20 @@ class ProdutoController{
             img: req.file ? req.file.filename : produto.img
           });
     
-          // Excluir todos os itens adicionais associados ao produto
-          await produto.setItensAdicionais([]);
+       
     
-          // Verificar se foram enviados novos itens adicionais na requisição
-          if (req.body.itensAdicionais && req.body.itensAdicionais.length > 0) {
-            const novosItensAdicionais = await ItemAdicional.findAll({
-              where: {
-                id: req.body.itensAdicionais
-              }
-            });
-    
-            // Criar as associações entre o produto e os novos itens adicionais
-            await produto.addItensAdicionais(novosItensAdicionais);
-          }
+       
+         // Verificar se foram enviados novos itens adicionais na requisição
+  if (req.body.itemadicional && req.body.itemadicional.length > 0) {
+    const novosItensAdicionais = await ItemAdicional.findAll({
+      where: {
+        id: req.body.itemadicional
+      }
+    });
+
+    // Atualizar as associações entre o produto e os itens adicionais
+    await produto.setItensAdicionais(novosItensAdicionais);
+  }
     
           return res.status(200).json({
             message: 'Produto atualizado com sucesso.'
