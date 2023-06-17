@@ -1,5 +1,5 @@
 const express = require('express')
-const ItensAdicionaisController = require('../controllers/ItensAdicionais.controller')
+const ItensAdicionaisController = require('../controllers/ItensAdicionaisController')
 
 const RoutesItens=express.Router()
 

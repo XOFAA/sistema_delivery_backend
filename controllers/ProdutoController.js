@@ -89,7 +89,7 @@ class ProdutoController{
         const produto = await Produto.findByPk(req.params.id);
     
         if (produto) {
-          if (req.body.titulo !== produto.titulo) {
+          if (req.body.titulo && req.body.titulo !== produto.titulo) {
             const produtoExistente = await Produto.findOne({
               where: {
                 titulo: req.body.titulo
