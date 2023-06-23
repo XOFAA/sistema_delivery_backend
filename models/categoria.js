@@ -13,6 +13,12 @@ module.exports = (sequelize, DataTypes) => {
       Categoria.hasMany(models.Produto,{
         foreignKey:'categoriaId'
       })
+      Categoria.belongsToMany(models.ItemAdicional, {
+        through: 'produtoitemadicional', // Nome da tabela intermediária
+        foreignKey: 'produtoId',
+        otherKey: 'itemAdicionalId',
+        as: 'itensAdicionais', // Nome da associação
+      });
     }
   }
   Categoria.init({

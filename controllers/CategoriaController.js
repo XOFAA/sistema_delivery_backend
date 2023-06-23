@@ -1,4 +1,4 @@
-const { Categoria,Produto } = require('../models')
+const { Categoria,Produto,ItemAdicional } = require('../models')
 
 
 class CategoriaController {
@@ -7,7 +7,15 @@ class CategoriaController {
 
         try {
             const categorias = await Categoria.findAll({
-                include:[Produto]
+                include:[{
+                    model:Produto
+                },
+                {
+                    model: ItemAdicional,
+                    as: 'itensAdicionais',
+                }
+            
+            ]
             })
             res.status(200).json({
                 data: categorias
