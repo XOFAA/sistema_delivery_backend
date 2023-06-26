@@ -6,6 +6,35 @@ const path=require('path');
 
 class ProdutoController{
 
+  static async getUmProduto(req, res) {
+    try {
+      const produto = await Produto.findOne({
+        where: { id: req.params.id },
+        include: [
+          {
+            model: ItemAdicional,
+            as: 'itensAdicionais',
+          },
+        ],
+      });
+  
+      if (produto) {
+        res.status(200).json({
+          data: produto,
+        });
+      } else {
+        res.status(404).json({
+          message: 'Produto não encontrado',
+        });
+      }
+    } catch (error) {
+      res.status(400).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  }
+
     static async getProduto(req,res){
 
         try {
@@ -103,7 +132,8 @@ class ProdutoController{
               return res.status(400).json({
                 error: true,
                 message: 'O nome do produto já está em uso.'
-              });
+              }
+              );
             }
           }
     

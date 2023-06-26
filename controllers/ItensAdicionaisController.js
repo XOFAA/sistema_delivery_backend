@@ -5,6 +5,8 @@ const { ItemAdicional, ProdutoItemAdicional } = require('../models')
 
 class ItensAdicionaisController {
 
+
+
   static async getItens(req, res) {
 
     try {
@@ -52,42 +54,42 @@ class ItensAdicionaisController {
   }
 
   static async updateItem(req, res) {
-    try {
-      const itens = await ItemAdicional.findOne({
-        where: {
-          titulo: req.body.titulo,
 
+   try {
+    const itens = await ItemAdicional.findByPk(req.params.id)
+    if(itens){
+      if(req.body.titulo &&  req.body.titulo !== itens.titulo){
+        const itensExistente = await ItemAdicional.findOne({
+          where:{
+            titulo: req.body.titulo
+          }
+        })
+        if(itensExistente && itensExistente.id !==req.params.id){
+        return res.status(400).json({
+          error: true,
+          message: 'O nome do produto já está em uso.'
         }
-      });
-
-      const novoItem = await ItemAdicional.findByPk(req.params.id);
-
-      if (itens && novoItem) {
-        res.status(501).json({
-          message: 'Já existe um item com esse nome'
-        });
-      } else {
-        if (!novoItem) {
-          res.status(500).json({
-            message: 'Item não encontrado'
-          });
-        } else {
-          await novoItem.update({
-            titulo: req.body.titulo,
-            descricao: req.body.descricao,
-            valor: parseFloat(req.body.valor)
-          });
-          res.status(200).json({
-            message: 'Item alterado com sucesso'
-          });
-        }
+        );
       }
-    } catch (error) {
-      res.status(400).json({
-        error: true,
-        message: error.message
-      });
     }
+    
+      await itens.update({
+        titulo: req.body.titulo || itens.titulo,
+        descricao: req.body.descricao || itens.descricao,
+        valor: req.body.valor || itens.valor,
+       
+      })
+      res.status(200).json({
+        message: 'item atualizado com sucesso!'
+      })
+    
+    }
+   } catch (error) {
+    res.status(400).json({
+      error:true,
+      message:error.message
+    })
+   }
   }
 
 
