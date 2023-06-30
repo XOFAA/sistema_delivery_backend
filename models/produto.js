@@ -28,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
     status: DataTypes.STRING,
     img: DataTypes.STRING,
     valor: DataTypes.DOUBLE,
+    qtditensobrigatorio: DataTypes.INTEGER,
     categoriaId: DataTypes.INTEGER,
     
   }, {

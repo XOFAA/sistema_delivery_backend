@@ -34,6 +34,10 @@ module.exports = {
         onDelete:'CASCADE',
         onUpdate:'CASCADE'
       },
+      qtditensobrigatorio: {
+        type: Sequelize.INTEGER,
+     
+      },
      
       createdAt: {
         allowNull: false,

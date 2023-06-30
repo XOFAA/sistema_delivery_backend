@@ -61,7 +61,7 @@ class ProdutoController{
 
     static async createProduto(req, res) {
       try {
-        const { titulo, descricao, categoriaId, valor, itemadicional } = req.body;
+        const { titulo, descricao, categoriaId, valor, itemadicional,qtditensobrigatorio } = req.body;
     
         const produtoExistente = await Produto.findOne({
           where: {
@@ -82,6 +82,7 @@ class ProdutoController{
           titulo: titulo,
           descricao: descricao,
           categoriaId: categoriaId,
+          qtditensobrigatorio:qtditensobrigatorio || 0,
           status: 'ativo',
           img: req.file ? req.file.filename : null,
           valor: parseFloat(valor),
@@ -146,6 +147,7 @@ class ProdutoController{
             descricao: req.body.descricao || produto.descricao,
             valor: req.body.valor || produto.valor,
             status: req.body.status || produto.status,
+            qtditensobrigatorio: req.body.qtditensobrigatorio || produto.qtditensobrigatorio,
             img: req.file ? req.file.filename : produto.img
           });
     
