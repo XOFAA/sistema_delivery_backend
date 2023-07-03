@@ -1,4 +1,4 @@
-const { Categoria,Produto,ItemAdicional } = require('../models')
+const { Categoria,Produto,ItemAdicional,ProdutoItemAdicional } = require('../models')
 
 
 class CategoriaController {
@@ -98,26 +98,50 @@ class CategoriaController {
 
     }
     
-    static async deleteCategoria(req,res){
-
+    static async deleteCategoria(req, res) {
         try {
-
-        const categorias=await Categoria.findByPk(req.params.id)
-        
-        if(!categorias){
-            res.status(500).json({
-                message:'categoria não existe'
-            })
-        }else{
-            categorias.destroy()
-            res.status(200).json({
-                message:'categoria deletada com sucesso'
-            })
-        }
+          const categoria = await Categoria.findByPk(req.params.id);
+      
+          if (!categoria) {
+            return res.status(500).json({
+              message: 'Categoria não existe',
+            });
+          }
+      
+          const produtos = await Produto.findAll({
+            where: {
+              categoriaId: req.params.id,
+            },
+          });
+      
+          if (produtos.length > 0) {
+            for (let i = 0; i < produtos.length; i++) {
+              const produto = produtos[i];
+      
+              await ProdutoItemAdicional.destroy({
+                where: {
+                  produtoId: produto.id,
+                },
+              });
+      
+              await produto.destroy();
+            }
+          }
+      
+          await categoria.destroy();
+      
+          return res.status(200).json({
+            message: 'Categoria, produtos e itens adicionais excluídos com sucesso',
+          });
         } catch (error) {
-            
+          // Lide com o erro adequadamente
+          console.error(error);
+          return res.status(500).json({
+            message: 'Ocorreu um erro ao excluir a categoria',
+          });
         }
-    }
+      }
+      
 
 }
 

@@ -13,6 +13,8 @@ module.exports = (sequelize, DataTypes) => {
       Categoria.hasMany(models.Produto,{
         foreignKey:'categoriaId'
       })
+ 
+
       Categoria.belongsToMany(models.ItemAdicional, {
         through: 'produtoitemadicional', // Nome da tabela intermediária
         foreignKey: 'produtoId',
@@ -26,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Categoria',
-    tableName:'Categorias'
+    tableName:'categorias'
   });
   return Categoria;
 };

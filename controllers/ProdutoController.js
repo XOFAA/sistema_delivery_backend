@@ -82,7 +82,7 @@ class ProdutoController{
           titulo: titulo,
           descricao: descricao,
           categoriaId: categoriaId,
-          qtditensobrigatorio:qtditensobrigatorio || 0,
+          qtditensobrigatorio:qtditensobrigatorio || undefined,
           status: 'ativo',
           img: req.file ? req.file.filename : null,
           valor: parseFloat(valor),
@@ -122,8 +122,8 @@ class ProdutoController{
           if (req.body.titulo && req.body.titulo !== produto.titulo) {
             const produtoExistente = await Produto.findOne({
               where: {
-                titulo: req.body.titulo
-              }
+                titulo: req.body.titulo,
+              },
             });
     
             if (produtoExistente && produtoExistente.id !== req.params.id) {
@@ -132,14 +132,19 @@ class ProdutoController{
               }
               return res.status(400).json({
                 error: true,
-                message: 'O nome do produto já está em uso.'
-              }
-              );
+                message: 'O nome do produto já está em uso.',
+              });
             }
           }
     
           if (req.file) {
-            fs.unlinkSync('public/images/' + produto.img);
+            const imagemAntiga = produto.img;
+            if (imagemAntiga) {
+              const caminhoImagemAntiga = path.join(__dirname, '..', 'public', 'images', imagemAntiga);
+              if (fs.existsSync(caminhoImagemAntiga)) {
+                fs.unlinkSync(caminhoImagemAntiga);
+              }
+            }
           }
     
           await produto.update({
@@ -148,26 +153,21 @@ class ProdutoController{
             valor: req.body.valor || produto.valor,
             status: req.body.status || produto.status,
             qtditensobrigatorio: req.body.qtditensobrigatorio || produto.qtditensobrigatorio,
-            img: req.file ? req.file.filename : produto.img
+            img: req.file ? req.file.filename : produto.img,
           });
     
-       
+          if (req.body.itemadicional && req.body.itemadicional.length > 0) {
+            const novosItensAdicionais = await ItemAdicional.findAll({
+              where: {
+                id: req.body.itemadicional,
+              },
+            });
     
-       
-         // Verificar se foram enviados novos itens adicionais na requisição
-  if (req.body.itemadicional && req.body.itemadicional.length > 0) {
-    const novosItensAdicionais = await ItemAdicional.findAll({
-      where: {
-        id: req.body.itemadicional
-      }
-    });
-
-    // Atualizar as associações entre o produto e os itens adicionais
-    await produto.setItensAdicionais(novosItensAdicionais);
-  }
+            await produto.setItensAdicionais(novosItensAdicionais);
+          }
     
           return res.status(200).json({
-            message: 'Produto atualizado com sucesso.'
+            message: 'Produto atualizado com sucesso.',
           });
         } else {
           if (req.file) {
@@ -176,7 +176,7 @@ class ProdutoController{
     
           return res.status(404).json({
             error: true,
-            message: 'Produto não encontrado.'
+            message: 'Produto não encontrado.',
           });
         }
       } catch (error) {
@@ -186,10 +186,11 @@ class ProdutoController{
     
         return res.status(500).json({
           error: true,
-          message: error.message
+          message: error.message,
         });
       }
     }
+    
     
 
     static async deleteProduto(req,res){
